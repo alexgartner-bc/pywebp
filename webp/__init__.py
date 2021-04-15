@@ -56,11 +56,21 @@ class WebPConfig:
     def quality(self, quality):
         self.ptr.quality = quality
 
+    @property
+    def target_size(self):
+        return self.ptr.target_size
+
+    @target_size.setter
+    def target_size(self, target_size):
+        self.ptr.target_size = target_size
+        # mimic cwebp: https://github.com/webmproject/libwebp/blob/master/examples/cwebp.c#L955
+        setattr(self.ptr, 'pass', 6)
+
     def validate(self):
         return lib.WebPValidateConfig(self.ptr) != 0
 
     @staticmethod
-    def new(preset=WebPPreset.DEFAULT, quality=75, lossless=False):
+    def new(preset=WebPPreset.DEFAULT, quality=75, lossless=False, target_size=0):
         """Create a new WebPConfig instance to describe encoder settings.
 
         Args:
@@ -76,6 +86,7 @@ class WebPConfig:
             raise WebPError('failed to load config from preset')
         config = WebPConfig(ptr)
         config.lossless = lossless
+        config.target_size = target_size
         if not config.validate():
             raise WebPError('config is not valid')
         return config
